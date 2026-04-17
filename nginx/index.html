@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Puntos de Interes</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #eef2f3;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #resultado {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            width: 200px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .categoria {
+            font-size: 12px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Puntos de Interes</h1>
+
+<h3>Ver todos</h3>
+<button onclick="cargarPuntos()">Ver puntos</button>
+
+<h3>Buscar por categoria</h3>
+<input type="text" id="categoriaFiltro" placeholder="Ej: cultural">
+<button onclick="filtrarCategoria()">Filtrar</button>
+
+<h3>Buscar cercanos</h3>
+<input type="text" id="lat" placeholder="Latitud">
+<input type="text" id="lon" placeholder="Longitud">
+<input type="text" id="radio" placeholder="Radio (m)">
+<br>
+<button onclick="buscar()">Buscar</button>
+
+<h3>Crear punto</h3>
+<input type="text" id="nombre" placeholder="Nombre">
+<input type="text" id="descripcion" placeholder="Descripcion">
+<input type="text" id="categoria" placeholder="Categoria">
+<input type="text" id="lat2" placeholder="Latitud">
+<input type="text" id="lon2" placeholder="Longitud">
+<br>
+<button onclick="crearPunto()">Crear</button>
+
+<div id="resultado"></div>
+
+<script>
+function cargarPuntos() {
+    fetch('/puntos')
+        .then(res => res.json())
+        .then(data => mostrar(data.puntos));
+}
+
+function filtrarCategoria() {
+    let cat = document.getElementById('categoriaFiltro').value;
+
+    fetch(`/puntos/categoria?categoria=${cat}`)
+        .then(res => res.json())
+        .then(data => mostrar(data.puntos));
+}
+
+function buscar() {
+    let lat = document.getElementById('lat').value;
+    let lon = document.getElementById('lon').value;
+    let radio = document.getElementById('radio').value;
+
+    fetch(`/puntos/cercanos?lat=${lat}&lon=${lon}&radio=${radio}`)
+        .then(res => res.json())
+        .then(data => mostrar(data.puntos_cercanos));
+}
+
+function crearPunto() {
+    let data = {
+        nombre: document.getElementById('nombre').value,
+        descripcion: document.getElementById('descripcion').value,
+        categoria: document.getElementById('categoria').value,
+        lat: parseFloat(document.getElementById('lat2').value),
+        lon: parseFloat(document.getElementById('lon2').value)
+    };
+
+    fetch('/puntos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => cargarPuntos());
+}
+
+function mostrar(lista) {
+    let div = document.getElementById('resultado');
+    div.innerHTML = "";
+
+    lista.forEach(p => {
+        div.innerHTML += `
+            <div class="card">
+                <h4>${p[0]}</h4>
+                <p class="categoria">${p[1]}</p>
+            </div>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
